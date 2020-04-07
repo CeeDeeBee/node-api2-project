@@ -50,4 +50,47 @@ router.get("/:id/comments", (req, res) => {
 		);
 });
 
+router.post("/", (req, res) => {
+	if (req.body.title && req.body.contents) {
+		db.insert(req.body)
+			.then((idObj) => {
+				db.findById(idObj.id)
+					.then((post) => res.status(201).json(post))
+					.catch((err) => {
+						res.status(500).json({ error: "Unable to save post." });
+					});
+			})
+			.catch((err) => {
+				res.status(500).json({ error: "Unable to save post." });
+			});
+	} else {
+		res
+			.status(400)
+			.json({ error: "Please provde title and contents for the post." });
+	}
+});
+
+router.post("/:id/comments", (req, res) => {
+	if (req.body.text) {
+		db.insertComment(req.body)
+			.then((idObj) => {
+				db.findCommentById(idObj.id)
+					.then((comment) => res.status(201).json(comment))
+					.catch((err) =>
+						res.status(500).json({
+							error:
+								"There was an error while saving the comment to the database",
+						})
+					);
+			})
+			.catch((err) =>
+				res
+					.status(404)
+					.json({ error: "The post with the specified ID does not exist" })
+			);
+	} else {
+		res.status(400).json({ error: "Please provide text for the comment." });
+	}
+});
+
 module.exports = router;
